@@ -1,0 +1,25 @@
+version: 3
+
+dotenv: [".env"]
+
+tasks:
+  sqlc:
+    cmds:
+      - docker run --rm -v .:/src -w /src sqlc/sqlc generate
+
+  # Run dev version of the backend
+  dev:
+    dir: backend
+    cmds:
+      - go run .
+
+  # Run dev version of the frontend
+  dev-web:
+    dir: website
+    cmds:
+      - pnpm dev --turbo
+
+  # Run dev tools from docker compose
+  dev-tools:
+    cmds:
+      - docker compose up postgres -d
