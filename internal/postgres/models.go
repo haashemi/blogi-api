@@ -23,7 +23,7 @@ type User struct {
 	ID        int64              `json:"id"`
 	FullName  string             `json:"fullName"`
 	Username  string             `json:"username"`
-	AboutMe   string             `json:"aboutMe"`
+	AboutMe   *string            `json:"aboutMe"`
 	Password  string             `json:"password"`
 	IsAdmin   bool               `json:"isAdmin"`
 	IsBanned  bool               `json:"isBanned"`
