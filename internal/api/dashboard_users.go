@@ -70,7 +70,7 @@ type UpdateDashboardUserReq struct {
 	ID       int64   `param:"id" validate:"required"`
 	FullName string  `json:"fullName" validate:"required,max=256"`
 	Username string  `json:"username" validate:"required,max=32"`
-	AboutMe  string  `json:"aboutMe" validate:"required,max=1024"`
+	AboutMe  *string `json:"aboutMe" validate:"omitempty,max=1024"`
 	Password *string `json:"password" validate:"required,min=6"`
 	IsBanned bool    `json:"isBanned"`
 }
