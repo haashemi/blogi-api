@@ -15,7 +15,7 @@ services:
     restart: always
 
   website:
-    container_name: bolgi-website
+    container_name: blogi-website
     build:
       context: ./website
       args:
@@ -28,7 +28,7 @@ services:
     restart: always
 
   postgres:
-    container_name: bolgi-postgres
+    container_name: blogi-postgres
     image: postgres:16
     env_file: .env
     environment:
