@@ -14,7 +14,7 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users(full_name, username, password)
 VALUES ($1, $2, $3)
-RETURNING id, full_name, username, about_me, password, is_admin, is_banned, created_at
+RETURNING id, full_name
 `
 
 type CreateUserParams struct {
@@ -23,19 +23,15 @@ type CreateUserParams struct {
 	Password string `json:"password"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+type CreateUserRow struct {
+	ID       int64  `json:"id"`
+	FullName string `json:"fullName"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRow(ctx, createUser, arg.FullName, arg.Username, arg.Password)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.FullName,
-		&i.Username,
-		&i.AboutMe,
-		&i.Password,
-		&i.IsAdmin,
-		&i.IsBanned,
-		&i.CreatedAt,
-	)
+	var i CreateUserRow
+	err := row.Scan(&i.ID, &i.FullName)
 	return i, err
 }
 
@@ -46,7 +42,7 @@ SELECT full_name, username, about_me, created_at FROM users WHERE id = $1
 type GetUserRow struct {
 	FullName  string             `json:"fullName"`
 	Username  string             `json:"username"`
-	AboutMe   string             `json:"aboutMe"`
+	AboutMe   *string            `json:"aboutMe"`
 	CreatedAt pgtype.Timestamptz `json:"createdAt"`
 }
 
@@ -86,7 +82,7 @@ SELECT full_name, username, about_me, is_admin, is_banned, created_at FROM users
 type GetUserFullRow struct {
 	FullName  string             `json:"fullName"`
 	Username  string             `json:"username"`
-	AboutMe   string             `json:"aboutMe"`
+	AboutMe   *string            `json:"aboutMe"`
 	IsAdmin   bool               `json:"isAdmin"`
 	IsBanned  bool               `json:"isBanned"`
 	CreatedAt pgtype.Timestamptz `json:"createdAt"`
@@ -122,8 +118,8 @@ SELECT full_name, about_me FROM users WHERE username = $1
 `
 
 type GetUserPublicRow struct {
-	FullName string `json:"fullName"`
-	AboutMe  string `json:"aboutMe"`
+	FullName string  `json:"fullName"`
+	AboutMe  *string `json:"aboutMe"`
 }
 
 func (q *Queries) GetUserPublic(ctx context.Context, username string) (GetUserPublicRow, error) {
@@ -185,9 +181,9 @@ SELECT full_name, username, about_me FROM users WHERE is_banned = false
 `
 
 type ListUsersPublicRow struct {
-	FullName string `json:"fullName"`
-	Username string `json:"username"`
-	AboutMe  string `json:"aboutMe"`
+	FullName string  `json:"fullName"`
+	Username string  `json:"username"`
+	AboutMe  *string `json:"aboutMe"`
 }
 
 func (q *Queries) ListUsersPublic(ctx context.Context) ([]ListUsersPublicRow, error) {
@@ -231,10 +227,10 @@ WHERE id = $1
 `
 
 type UpdateUserParams struct {
-	ID       int64  `json:"id"`
-	FullName string `json:"fullName"`
-	Username string `json:"username"`
-	AboutMe  string `json:"aboutMe"`
+	ID       int64   `json:"id"`
+	FullName string  `json:"fullName"`
+	Username string  `json:"username"`
+	AboutMe  *string `json:"aboutMe"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
@@ -259,12 +255,12 @@ WHERE id = $1
 `
 
 type UpdateUserFullParams struct {
-	ID       int64  `json:"id"`
-	FullName string `json:"fullName"`
-	Username string `json:"username"`
-	AboutMe  string `json:"aboutMe"`
-	Password string `json:"password"`
-	IsBanned bool   `json:"isBanned"`
+	ID       int64   `json:"id"`
+	FullName string  `json:"fullName"`
+	Username string  `json:"username"`
+	AboutMe  *string `json:"aboutMe"`
+	Password string  `json:"password"`
+	IsBanned bool    `json:"isBanned"`
 }
 
 func (q *Queries) UpdateUserFull(ctx context.Context, arg UpdateUserFullParams) error {

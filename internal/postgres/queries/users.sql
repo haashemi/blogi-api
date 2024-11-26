@@ -1,7 +1,7 @@
 -- name: CreateUser :one
 INSERT INTO users(full_name, username, password)
 VALUES ($1, $2, $3)
-RETURNING *;
+RETURNING id, full_name;
 
 -- name: ListUsers :many
 SELECT id, full_name, username, is_admin FROM users ORDER BY created_at DESC;
