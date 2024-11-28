@@ -56,7 +56,21 @@ ORDER BY b.created_at;
 SELECT * FROM blogs WHERE id = $1;
 
 -- name: GetBlogPublic :one
-SELECT title, summary, content, created_at, updated_at FROM blogs WHERE id = $1 and removed_at is null;
+SELECT
+    b.title,
+    b.summary,
+    b.content,
+    b.created_at,
+    b.updated_at,
+    u.full_name as author_name,
+    u.username  as author_username,
+    u.about_me  as author_about
+FROM blogs b
+JOIN users u ON u.id = b.author_id
+WHERE
+    b.id = $1 and 
+    b.removed_at is null and
+    u.is_banned = false;
 
 -- name: UpdateBlog :exec
 UPDATE blogs

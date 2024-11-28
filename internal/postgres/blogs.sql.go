@@ -66,15 +66,32 @@ func (q *Queries) GetBlog(ctx context.Context, id int64) (Blog, error) {
 }
 
 const getBlogPublic = `-- name: GetBlogPublic :one
-SELECT title, summary, content, created_at, updated_at FROM blogs WHERE id = $1 and removed_at is null
+SELECT
+    b.title,
+    b.summary,
+    b.content,
+    b.created_at,
+    b.updated_at,
+    u.full_name as author_name,
+    u.username  as author_username,
+    u.about_me  as author_about
+FROM blogs b
+JOIN users u ON u.id = b.author_id
+WHERE
+    b.id = $1 and 
+    b.removed_at is null and
+    u.is_banned = false
 `
 
 type GetBlogPublicRow struct {
-	Title     string             `json:"title"`
-	Summary   string             `json:"summary"`
-	Content   string             `json:"content"`
-	CreatedAt pgtype.Timestamptz `json:"createdAt"`
-	UpdatedAt pgtype.Timestamptz `json:"updatedAt"`
+	Title          string             `json:"title"`
+	Summary        string             `json:"summary"`
+	Content        string             `json:"content"`
+	CreatedAt      pgtype.Timestamptz `json:"createdAt"`
+	UpdatedAt      pgtype.Timestamptz `json:"updatedAt"`
+	AuthorName     string             `json:"authorName"`
+	AuthorUsername string             `json:"authorUsername"`
+	AuthorAbout    *string            `json:"authorAbout"`
 }
 
 func (q *Queries) GetBlogPublic(ctx context.Context, id int64) (GetBlogPublicRow, error) {
@@ -86,6 +103,9 @@ func (q *Queries) GetBlogPublic(ctx context.Context, id int64) (GetBlogPublicRow
 		&i.Content,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AuthorName,
+		&i.AuthorUsername,
+		&i.AuthorAbout,
 	)
 	return i, err
 }
