@@ -24,21 +24,21 @@ func Run(conf APIConfig) {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Secure())
 	e.Use(middleware.CORS())
+	e.Use(middleware.CSRF())
 	e.Use(middleware.Gzip())
 
 	api := API{conf}
+	authMiddleware := api.createAuthMiddleware()
 
 	auth := e.Group("/auth")
 	{
-		auth.POST("/sign-up", nil)     // db.[users].CreateUser
-		auth.POST("/sign-in", nil)     // db.[users].GetUserAuthData
-		auth.POST("/sign-out", nil)    // TODO[invalidate]
-		auth.POST("/refresh", nil)     // db.[users].GetUserAuthData & TODO[invalidation-check]
-		auth.POST("/user-exists", nil) // db.[users].GetUsernameExists
+		auth.POST("/sign-up", api.signUp)
+		auth.POST("/sign-in", api.signIn)
+		auth.POST("/sign-out", api.signOut)
+		auth.POST("/change-password", api.changePassword, authMiddleware)
 	}
 
-	// TODO: set admin auth middleware
-	dashboard := e.Group("/api/dashboard")
+	dashboard := e.Group("/api/dashboard", authMiddleware, api.adminCheckMiddleware)
 	{
 		blog := dashboard.Group("/blogs")
 		{
@@ -56,17 +56,16 @@ func Run(conf APIConfig) {
 		}
 	}
 
-	// TODO: set user auth middleware
-	profile := e.Group("/profile")
+	profile := e.Group("/profile", authMiddleware)
 	{
-		profile.GET("", api.getProfile)      // db.[users].GetUser & db.[blogs].ListAuthorBlogs
-		profile.PATCH("", api.updateProfile) // db.[users].UpdateUser
+		profile.GET("", api.getProfile)
+		profile.PATCH("", api.updateProfile)
 
 		blog := profile.Group("/blog")
 		{
-			blog.POST("", api.createBlog)       // db.[blogs].CreateBlog
-			blog.PATCH("/:id", api.updateBlog)  // db.[blogs].UpdateBlog
-			blog.DELETE("/:id", api.deleteBlog) // db.[blogs].DeleteBlog
+			blog.POST("", api.createBlog)
+			blog.PATCH("/:id", api.updateBlog)
+			blog.DELETE("/:id", api.deleteBlog)
 		}
 	}
 

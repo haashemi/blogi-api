@@ -16,6 +16,7 @@ type BaseConfig struct {
 
 type APIConfig struct {
 	APIAddr string `env:"BLOGI_API_ADDR"`
+	HMAC    []byte `env:"BLOGI_API_HMAC"`
 }
 
 func Load() (config Config, err error) {
