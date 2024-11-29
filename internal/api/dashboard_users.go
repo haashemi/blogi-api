@@ -2,6 +2,7 @@ package api
 
 import (
 	"blogi/internal/postgres"
+	"blogi/pkg/argon2id"
 	"context"
 	"net/http"
 	"strconv"
@@ -83,15 +84,17 @@ func (api *API) updateDashboardUser(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Request validation failed.")
 	}
 
-	hashedPassword, err := api.DB.GetUserPassword(context.Background(), body.ID)
+	user, err := api.DB.GetUserCriticalAuthData(context.Background(), body.ID)
 	if err != nil {
 		c.Logger().Error("api.DB.GetUserPassword", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Database error.")
 	}
 
 	if body.Password != nil {
-		// TODO: If hashes are not the same, rewrite 'hashedPassword' with hash(body.Password)
-		// TODO: If hashes are not the same, invalidate the old sessions.
+		user.Password, err = argon2id.CreateHash(*body.Password, argon2id.DefaultParams)
+		if err != nil {
+			return echo.ErrInternalServerError.SetInternal(err)
+		}
 	}
 
 	err = api.DB.UpdateUserFull(context.Background(), postgres.UpdateUserFullParams{
@@ -99,7 +102,7 @@ func (api *API) updateDashboardUser(c echo.Context) error {
 		FullName: body.FullName,
 		Username: body.Username,
 		AboutMe:  body.AboutMe,
-		Password: hashedPassword,
+		Password: user.Password,
 		IsBanned: body.IsBanned,
 	})
 	if err != nil {
