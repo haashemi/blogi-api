@@ -25,10 +25,10 @@ SELECT full_name, username, about_me, is_admin, is_banned, created_at FROM users
 SELECT full_name, about_me FROM users WHERE username = $1;
 
 -- name: GetUserAuthData :one
-SELECT full_name, password, is_banned FROM users WHERE username = $1;
+SELECT id, full_name, password, is_admin, is_banned FROM users WHERE username = $1;
 
--- name: GetUserPassword :one
-SELECT password FROM users WHERE id = $1;
+-- name: GetUserCriticalAuthData :one
+SELECT password, is_admin, is_banned FROM users WHERE id = $1;
 
 -- name: UpdateUser :exec
 UPDATE users
@@ -46,4 +46,10 @@ SET
     about_me = $4,
     password = $5,
     is_banned = $6
+WHERE id = $1;
+
+-- name: UpdateUserPassword :exec
+UPDATE users
+SET 
+    password = $2
 WHERE id = $1;

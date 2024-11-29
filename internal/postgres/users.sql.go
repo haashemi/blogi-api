@@ -59,19 +59,44 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
 }
 
 const getUserAuthData = `-- name: GetUserAuthData :one
-SELECT full_name, password, is_banned FROM users WHERE username = $1
+SELECT id, full_name, password, is_admin, is_banned FROM users WHERE username = $1
 `
 
 type GetUserAuthDataRow struct {
+	ID       int64  `json:"id"`
 	FullName string `json:"fullName"`
 	Password string `json:"password"`
+	IsAdmin  bool   `json:"isAdmin"`
 	IsBanned bool   `json:"isBanned"`
 }
 
 func (q *Queries) GetUserAuthData(ctx context.Context, username string) (GetUserAuthDataRow, error) {
 	row := q.db.QueryRow(ctx, getUserAuthData, username)
 	var i GetUserAuthDataRow
-	err := row.Scan(&i.FullName, &i.Password, &i.IsBanned)
+	err := row.Scan(
+		&i.ID,
+		&i.FullName,
+		&i.Password,
+		&i.IsAdmin,
+		&i.IsBanned,
+	)
+	return i, err
+}
+
+const getUserCriticalAuthData = `-- name: GetUserCriticalAuthData :one
+SELECT password, is_admin, is_banned FROM users WHERE id = $1
+`
+
+type GetUserCriticalAuthDataRow struct {
+	Password string `json:"password"`
+	IsAdmin  bool   `json:"isAdmin"`
+	IsBanned bool   `json:"isBanned"`
+}
+
+func (q *Queries) GetUserCriticalAuthData(ctx context.Context, id int64) (GetUserCriticalAuthDataRow, error) {
+	row := q.db.QueryRow(ctx, getUserCriticalAuthData, id)
+	var i GetUserCriticalAuthDataRow
+	err := row.Scan(&i.Password, &i.IsAdmin, &i.IsBanned)
 	return i, err
 }
 
@@ -100,17 +125,6 @@ func (q *Queries) GetUserFull(ctx context.Context, id int64) (GetUserFullRow, er
 		&i.CreatedAt,
 	)
 	return i, err
-}
-
-const getUserPassword = `-- name: GetUserPassword :one
-SELECT password FROM users WHERE id = $1
-`
-
-func (q *Queries) GetUserPassword(ctx context.Context, id int64) (string, error) {
-	row := q.db.QueryRow(ctx, getUserPassword, id)
-	var password string
-	err := row.Scan(&password)
-	return password, err
 }
 
 const getUserPublic = `-- name: GetUserPublic :one
@@ -272,5 +286,22 @@ func (q *Queries) UpdateUserFull(ctx context.Context, arg UpdateUserFullParams) 
 		arg.Password,
 		arg.IsBanned,
 	)
+	return err
+}
+
+const updateUserPassword = `-- name: UpdateUserPassword :exec
+UPDATE users
+SET 
+    password = $2
+WHERE id = $1
+`
+
+type UpdateUserPasswordParams struct {
+	ID       int64  `json:"id"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.Exec(ctx, updateUserPassword, arg.ID, arg.Password)
 	return err
 }
