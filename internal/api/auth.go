@@ -174,11 +174,12 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 }
 
+// TODO: Fill the fields and use config if necessary.
 func (api *API) createAuthToken(userID int64, isAdmin bool) (string, error) {
 	// Create the Claims
 	claims := &JWTClaims{
-		UserID:  0,
-		IsAdmin: false,
+		UserID:  userID,
+		IsAdmin: isAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "",
 			Subject:   "",
@@ -196,6 +197,7 @@ func (api *API) createAuthToken(userID int64, isAdmin bool) (string, error) {
 	return token.SignedString(api.HMAC)
 }
 
+// TODO: Fill the fields and use config if necessary.
 func (api *API) createAuthCookie(token string) *http.Cookie {
 	return &http.Cookie{
 		Name:  TokenCookieName,
