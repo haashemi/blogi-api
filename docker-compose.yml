@@ -3,41 +3,27 @@ name: blogi
 services:
   backend:
     container_name: blogi-backend
-    build:
-      context: ./backend
-    networks:
-      - back-tier
-      - front-tier
-    ports:
-      - 5571:8080
-    volumes:
-      - .env:/app/.env
-    restart: always
+    image: ghcr.io/haashemi/blogi-api
+    networks: [back-tier, front-tier]
+    ports: [5571:8080]
+    volumes: [.env:/app/.env]
+    restart: unless-stopped
 
-  website:
-    container_name: blogi-website
-    build:
-      context: ./website
-      args:
-        - WEB_APP_HOST=${WEB_APP_HOST}
+  frontend:
+    container_name: blogi-frontend
+    image: ghcr.io/haashemi/blogi
     env_file: .env
-    networks:
-      - front-tier
-    ports:
-      - 5572:3000
-    restart: always
+    networks: [front-tier]
+    ports: [5572:3000]
+    restart: unless-stopped
 
   postgres:
     container_name: blogi-postgres
     image: postgres:16
     env_file: .env
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=blogi
-      - POSTGRES_PASSWORD=p17mZ0D7NT7lQi6j
-    networks:
-      - back-tier
-    restart: always
+    networks: [back-tier]
+    volumes: [./.blogi/postgres:/var/lib/postgresql/data]
+    restart: unless-stopped
     shm_size: 128mb
 
 networks:
