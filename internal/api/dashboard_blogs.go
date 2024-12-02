@@ -9,20 +9,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type GetDashboardBlogsReq struct {
-	// TODO: Implement the pagination
-}
-
 type GetDashboardBlogsRes []postgres.ListBlogsRow
 
 func (api *API) getDashboardBlogs(c echo.Context) error {
-	var body GetDashboardBlogsReq
-	if err := c.Bind(&body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request binding failed.")
-	} else if err = c.Validate(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request validation failed.")
-	}
-
 	data, err := api.DB.ListBlogs(c.Request().Context())
 	if err != nil {
 		c.Logger().Error("api.DB.ListBlogs", err)
@@ -48,9 +37,9 @@ type GetDashboardBlogRes postgres.Blog
 func (api *API) getDashboardBlog(c echo.Context) error {
 	var body GetDashboardBlogReq
 	if err := c.Bind(&body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request binding failed.")
+		return echo.ErrBadRequest
 	} else if err = c.Validate(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request validation failed.")
+		return echo.ErrBadRequest
 	}
 
 	data, err := api.DB.GetBlog(c.Request().Context(), body.ID)
@@ -75,9 +64,9 @@ type UpdateDashboardBlogReq struct {
 func (api *API) updateDashboardBlog(c echo.Context) error {
 	var body UpdateDashboardBlogReq
 	if err := c.Bind(&body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request binding failed.")
+		return echo.ErrBadRequest
 	} else if err = c.Validate(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request validation failed.")
+		return echo.ErrBadRequest
 	}
 
 	err := api.DB.UpdateBlog(c.Request().Context(), postgres.UpdateBlogParams(body))
@@ -96,9 +85,9 @@ type DeleteDashboardBlogReq struct {
 func (api *API) deleteDashboardBlog(c echo.Context) error {
 	var body DeleteDashboardBlogReq
 	if err := c.Bind(&body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request binding failed.")
+		return echo.ErrBadRequest
 	} else if err = c.Validate(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request validation failed.")
+		return echo.ErrBadRequest
 	}
 
 	err := api.DB.RemoveBlog(c.Request().Context(), body.ID)

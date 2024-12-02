@@ -11,20 +11,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type GetDashboardUsersReq struct {
-	// TODO: Implement the pagination
-}
-
 type GetDashboardUsersRes []postgres.ListUsersRow
 
 func (api *API) getDashboardUsers(c echo.Context) error {
-	var body GetDashboardUsersReq
-	if err := c.Bind(&body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request binding failed.")
-	} else if err = c.Validate(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request validation failed.")
-	}
-
 	data, err := api.DB.ListUsers(c.Request().Context())
 	if err != nil {
 		c.Logger().Error("api.DB.ListUsers", err)
@@ -50,9 +39,9 @@ type GetDashboardUserRes postgres.GetUserRow
 func (api *API) getDashboardUser(c echo.Context) error {
 	var body GetDashboardUserReq
 	if err := c.Bind(&body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request binding failed.")
+		return echo.ErrBadRequest
 	} else if err = c.Validate(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request validation failed.")
+		return echo.ErrBadRequest
 	}
 
 	data, err := api.DB.GetUser(c.Request().Context(), body.ID)
@@ -79,9 +68,9 @@ type UpdateDashboardUserReq struct {
 func (api *API) updateDashboardUser(c echo.Context) error {
 	var body UpdateDashboardUserReq
 	if err := c.Bind(&body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request binding failed.")
+		return echo.ErrBadRequest
 	} else if err = c.Validate(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request validation failed.")
+		return echo.ErrBadRequest
 	}
 
 	user, err := api.DB.GetUserCriticalAuthData(context.Background(), body.ID)

@@ -9,20 +9,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type GetBlogsReq struct {
-	// TODO: Implement the pagination
-}
-
 type GetBlogsRes []postgres.ListBlogsPublicRow
 
 func (api *API) getBlogs(c echo.Context) error {
-	var body GetBlogsReq
-	if err := c.Bind(&body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request binding failed.")
-	} else if err = c.Validate(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request validation failed.")
-	}
-
 	data, err := api.DB.ListBlogsPublic(c.Request().Context())
 	if err != nil {
 		c.Logger().Error("api.DB.ListBlogsPublic", err)
@@ -48,9 +37,9 @@ type GetBlogRes postgres.GetBlogPublicRow
 func (api *API) getBlog(c echo.Context) error {
 	var body GetBlogReq
 	if err := c.Bind(&body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request binding failed.")
+		return echo.ErrBadRequest
 	} else if err = c.Validate(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Request validation failed.")
+		return echo.ErrBadRequest
 	}
 
 	data, err := api.DB.GetBlogPublic(c.Request().Context(), body.ID)
