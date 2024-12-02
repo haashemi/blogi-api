@@ -122,14 +122,14 @@ func (api *API) changePassword(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	// TODO-> Get the user info from JWT
-	var USER_ID int64
+	userToken := c.Get("user").(*jwt.Token)
+	claims := userToken.Claims.(*JWTClaims)
 
 	if body.Password == body.NewPassword {
 		return echo.NewHTTPError(http.StatusBadRequest, "New password shouldn't be same as the old password.")
 	}
 
-	user, err := api.DB.GetUserCriticalAuthData(c.Request().Context(), USER_ID)
+	user, err := api.DB.GetUserCriticalAuthData(c.Request().Context(), claims.UserID)
 	if err != nil {
 		return echo.ErrInternalServerError.SetInternal(err)
 	}
@@ -152,14 +152,14 @@ func (api *API) changePassword(c echo.Context) error {
 	}
 
 	err = api.DB.UpdateUserPassword(c.Request().Context(), postgres.UpdateUserPasswordParams{
-		ID:       USER_ID,
+		ID:       claims.UserID,
 		Password: newHashedPassword,
 	})
 	if err != nil {
 		return echo.ErrInternalServerError.SetInternal(err)
 	}
 
-	token, err := api.createAuthToken(USER_ID, user.IsAdmin)
+	token, err := api.createAuthToken(claims.UserID, user.IsAdmin)
 	if err != nil {
 		return echo.ErrInternalServerError.SetInternal(err)
 	}
