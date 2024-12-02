@@ -122,8 +122,7 @@ func (api *API) changePassword(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	userToken := c.Get("user").(*jwt.Token)
-	claims := userToken.Claims.(*JWTClaims)
+	claims := getClaims(c)
 
 	if body.Password == body.NewPassword {
 		return echo.NewHTTPError(http.StatusBadRequest, "New password shouldn't be same as the old password.")
@@ -230,8 +229,7 @@ func (api *API) createAuthMiddleware() echo.MiddlewareFunc {
 
 func (api *API) adminCheckMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user := c.Get("user").(*jwt.Token)
-		claims := user.Claims.(*JWTClaims)
+		claims := getClaims(c)
 
 		if !claims.IsAdmin {
 			return echo.ErrForbidden

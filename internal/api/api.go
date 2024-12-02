@@ -5,6 +5,7 @@ import (
 	"blogi/internal/postgres"
 	"blogi/pkg/validate"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -85,4 +86,9 @@ func Run(conf APIConfig) {
 	}
 
 	e.Logger.Fatal(e.Start(conf.APIAddr))
+}
+
+func getClaims(c echo.Context) *JWTClaims {
+	userToken := c.Get("user").(*jwt.Token)
+	return userToken.Claims.(*JWTClaims)
 }
