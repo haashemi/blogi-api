@@ -1,7 +1,7 @@
 -- name: CreateBlog :one
 INSERT INTO blogs(author_id, title, summary, content)
 VALUES ($1, $2, $3, $4)
-RETURNING *;
+RETURNING id;
 
 -- name: ListBlogs :many
 SELECT

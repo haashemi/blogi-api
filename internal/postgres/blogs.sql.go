@@ -14,7 +14,7 @@ import (
 const createBlog = `-- name: CreateBlog :one
 INSERT INTO blogs(author_id, title, summary, content)
 VALUES ($1, $2, $3, $4)
-RETURNING id, author_id, title, summary, content, created_at, updated_at, removed_at
+RETURNING id
 `
 
 type CreateBlogParams struct {
@@ -24,25 +24,16 @@ type CreateBlogParams struct {
 	Content  string `json:"content"`
 }
 
-func (q *Queries) CreateBlog(ctx context.Context, arg CreateBlogParams) (Blog, error) {
+func (q *Queries) CreateBlog(ctx context.Context, arg CreateBlogParams) (int64, error) {
 	row := q.db.QueryRow(ctx, createBlog,
 		arg.AuthorID,
 		arg.Title,
 		arg.Summary,
 		arg.Content,
 	)
-	var i Blog
-	err := row.Scan(
-		&i.ID,
-		&i.AuthorID,
-		&i.Title,
-		&i.Summary,
-		&i.Content,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.RemovedAt,
-	)
-	return i, err
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getBlog = `-- name: GetBlog :one
