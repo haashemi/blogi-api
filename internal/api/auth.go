@@ -173,20 +173,19 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 }
 
-// TODO: Fill the fields and use config if necessary.
 func (api *API) createAuthToken(userID int64, isAdmin bool) (string, error) {
+	currentTime := time.Now()
+
 	// Create the Claims
 	claims := &JWTClaims{
 		UserID:  userID,
 		IsAdmin: isAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "",
-			Subject:   "",
-			Audience:  []string{},
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenDuration)),
-			NotBefore: &jwt.NumericDate{},
-			IssuedAt:  &jwt.NumericDate{},
-			ID:        "",
+			Issuer:    "blogi-api",
+			Audience:  []string{"blogi-frontend"},
+			ExpiresAt: jwt.NewNumericDate(currentTime.Add(TokenDuration)),
+			NotBefore: jwt.NewNumericDate(currentTime),
+			IssuedAt:  jwt.NewNumericDate(currentTime),
 		},
 	}
 
@@ -196,32 +195,30 @@ func (api *API) createAuthToken(userID int64, isAdmin bool) (string, error) {
 	return token.SignedString(api.HMAC)
 }
 
-// TODO: Fill the fields and use config if necessary.
 func (api *API) createAuthCookie(token string) *http.Cookie {
 	return &http.Cookie{
-		Name:  TokenCookieName,
-		Value: token,
-		// Quoted:      false,
-		Path: "/",
-		// Domain:      "",
-		Expires: time.Now().Add(TokenDuration),
-		// RawExpires:  "",
-		// MaxAge:      0,
-		// Secure:      false,
+		Name:     TokenCookieName,
+		Value:    token,
+		Path:     "/",
 		HttpOnly: true,
-		// SameSite:    0,
-		// Partitioned: false,
-		// Raw:         "",
-		// Unparsed:    []string{},
+		Secure:   !api.IsDevBuild,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   int(TokenDuration.Seconds()),
+		Expires:  time.Now().Add(TokenDuration),
 	}
 }
 
 func (api *API) createAuthMiddleware() echo.MiddlewareFunc {
-	// Configure middleware with the custom claims type
 	config := echojwt.Config{
+		ErrorHandler: func(c echo.Context, err error) error {
+			if err == echojwt.ErrJWTMissing {
+				return echo.ErrUnauthorized
+			}
+			return err
+		},
+		NewClaimsFunc: func(c echo.Context) jwt.Claims { return new(JWTClaims) },
 		SigningKey:    api.HMAC,
 		TokenLookup:   "cookie:" + TokenCookieName,
-		NewClaimsFunc: func(c echo.Context) jwt.Claims { return new(JWTClaims) },
 	}
 
 	return echojwt.WithConfig(config)
