@@ -25,6 +25,7 @@ services:
     volumes: [./.blogi/postgres:/var/lib/postgresql/data]
     restart: unless-stopped
     shm_size: 128mb
+    ports: [5573:5432]
 
 networks:
   back-tier:
