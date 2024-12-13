@@ -16,7 +16,7 @@ type BaseConfig struct {
 
 type APIConfig struct {
 	APIAddr    string `env:"BLOGI_API_ADDR" envDefault:":8080"`
-	HMAC       []byte `env:"BLOGI_API_HMAC"`
+	HMAC       string `env:"BLOGI_API_HMAC"`
 	IsDevBuild bool   `env:"BLOGI_IS_DEV_BUILD" envDefault:"false"`
 }
 

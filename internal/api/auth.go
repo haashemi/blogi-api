@@ -192,7 +192,7 @@ func (api *API) createAuthToken(userID int64, isAdmin bool) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Sign and get the complete encoded token as a string using the secret
-	return token.SignedString(api.HMAC)
+	return token.SignedString([]byte(api.HMAC))
 }
 
 func (api *API) createAuthCookie(token string) *http.Cookie {
@@ -217,7 +217,7 @@ func (api *API) createAuthMiddleware() echo.MiddlewareFunc {
 			return err
 		},
 		NewClaimsFunc: func(c echo.Context) jwt.Claims { return new(JWTClaims) },
-		SigningKey:    api.HMAC,
+		SigningKey:    []byte(api.HMAC),
 		TokenLookup:   "cookie:" + TokenCookieName,
 	}
 
