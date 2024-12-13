@@ -9,17 +9,14 @@ tasks:
 
   # Run dev version of the backend
   dev:
-    dir: backend
     cmds:
-      - go run .
-
-  # Run dev version of the frontend
-  dev-web:
-    dir: website
-    cmds:
-      - pnpm dev --turbo
+      - go run ./cmd/blogi
 
   # Run dev tools from docker compose
   dev-tools:
     cmds:
       - docker compose up postgres -d
+
+  db-init:
+    cmds:
+      - docker exec -it blogi-postgres createdb -U postgres blogi
